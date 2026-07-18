@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      study_sessions: {
+        Row: {
+          created_at: string
+          date: string
+          difficulty: number | null
+          duration_minutes: number
+          id: string
+          learning_summary: string | null
+          notes: string | null
+          subject: string
+          topic: string | null
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          difficulty?: number | null
+          duration_minutes: number
+          id?: string
+          learning_summary?: string | null
+          notes?: string | null
+          subject: string
+          topic?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          difficulty?: number | null
+          duration_minutes?: number
+          id?: string
+          learning_summary?: string | null
+          notes?: string | null
+          subject?: string
+          topic?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
