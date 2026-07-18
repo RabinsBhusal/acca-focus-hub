@@ -65,8 +65,17 @@ function SessionPage() {
 
   const resolvedSubject = subject === "Other" ? customSubject.trim() || "Other" : subject;
 
+  type NewSession = {
+    subject: string;
+    topic: string | null;
+    duration_minutes: number;
+    difficulty: number;
+    notes: string | null;
+    learning_summary: string | null;
+  };
+
   const mutation = useMutation({
-    mutationFn: (input: Parameters<typeof createFn>[0]["data"]) => createFn({ data: input }),
+    mutationFn: (input: NewSession) => createFn({ data: input }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       toast.success("Session saved");
