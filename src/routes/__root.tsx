@@ -83,13 +83,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "A private tracker for ACCA study sessions. Log time, monitor consistency, and see progress over time.",
       },
-      { property: "og:title", content: "ACCA Study Tracker" },
+      { property: "og:title", content: "ACCA Study Tracker — Focused study sessions" },
       {
         property: "og:description",
-        content: "Track ACCA study sessions and build consistency.",
+        content: "A private tracker for ACCA study sessions. Log time, monitor consistency, and see progress over time.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "ACCA Study Tracker — Focused study sessions" },
+      { name: "twitter:description", content: "A private tracker for ACCA study sessions. Log time, monitor consistency, and see progress over time." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3d1d7a4b-f8af-448b-80d8-7c5dc9c36d39/id-preview-874dfd09--b5d42712-1d16-41f0-8f1c-6791622dcab8.lovable.app-1784399363472.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3d1d7a4b-f8af-448b-80d8-7c5dc9c36d39/id-preview-874dfd09--b5d42712-1d16-41f0-8f1c-6791622dcab8.lovable.app-1784399363472.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
