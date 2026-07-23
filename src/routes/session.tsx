@@ -28,6 +28,7 @@ function SessionPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const createFn = useServerFn(createSession);
+  const upsertEventFn = useServerFn(upsertEvent);
 
   const [phase, setPhase] = useState<Phase>("setup");
   const [subject, setSubject] = useState<Subject>("ATX");
@@ -76,9 +77,31 @@ function SessionPage() {
   };
 
   const mutation = useMutation({
-    mutationFn: (input: NewSession) => createFn({ data: input }),
+    mutationFn: async (input: NewSession) => {
+      const row = await createFn({ data: input });
+      // Auto-log to calendar
+      try {
+        const startIso = row?.date ?? new Date().toISOString();
+        await upsertEventFn({
+          data: {
+            title: `${input.subject}${input.topic ? ` · ${input.topic}` : ""}`,
+            category: "study",
+            start_at: startIso,
+            duration_minutes: input.duration_minutes,
+            all_day: false,
+            notes: input.learning_summary ?? input.notes ?? null,
+            completed: true,
+            session_id: row?.id,
+          },
+        });
+      } catch (err) {
+        console.warn("Calendar auto-log failed", err);
+      }
+      return row;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
       toast.success("Session saved");
       navigate({ to: "/" });
     },

@@ -1,4 +1,4 @@
-import { toDateKey, type CalendarEvent } from "@/lib/calendar";
+import { toDateKey } from "@/lib/calendar";
 import type { SessionRow } from "@/lib/stats";
 
 const WEEKS = 26;
@@ -69,6 +69,3 @@ export function Heatmap({ sessions }: { sessions: SessionRow[] }) {
     </div>
   );
 }
-
-// Explicit unused import guard for tree-shaking clarity
-export type _CalendarEventUnused = CalendarEvent;
