@@ -6,6 +6,7 @@ import { Pause, Play, Square, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { SUBJECTS, type Subject } from "@/lib/constants";
 import { createSession } from "@/lib/sessions.functions";
+import { upsertEvent } from "@/lib/calendar.functions";
 import { StarRating } from "@/components/StarRating";
 
 export const Route = createFileRoute("/session")({
