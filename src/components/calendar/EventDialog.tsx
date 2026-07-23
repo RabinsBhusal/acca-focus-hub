@@ -71,8 +71,20 @@ export function EventDialog({
     if (open) setDraft(eventToDraft(event, prefillDate));
   }, [open, event, prefillDate]);
 
+  type SavePayload = {
+    id?: string;
+    title: string;
+    category: Category;
+    start_at: string;
+    duration_minutes: number | null;
+    all_day: boolean;
+    priority: number | null;
+    notes: string | null;
+    completed: boolean;
+  };
+
   const saveMut = useMutation({
-    mutationFn: (input: Parameters<typeof save>[0]["data"]) => save({ data: input }),
+    mutationFn: (input: SavePayload) => save({ data: input }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["calendar-events"] });
       toast.success(event ? "Event updated" : "Event added");
