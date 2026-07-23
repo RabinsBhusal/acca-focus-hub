@@ -12,7 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as SessionRouteImport } from './routes/session'
 import { Route as HistoryRouteImport } from './routes/history'
-import { Route as CountdownsRouteImport } from './routes/countdowns'
+import { Route as ExamsRouteImport } from './routes/exams'
+import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as IndexRouteImport } from './routes/index'
 
 const StatsRoute = StatsRouteImport.update({
@@ -30,9 +31,14 @@ const HistoryRoute = HistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CountdownsRoute = CountdownsRouteImport.update({
-  id: '/countdowns',
-  path: '/countdowns',
+const ExamsRoute = ExamsRouteImport.update({
+  id: '/exams',
+  path: '/exams',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,14 +49,16 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/countdowns': typeof CountdownsRoute
+  '/calendar': typeof CalendarRoute
+  '/exams': typeof ExamsRoute
   '/history': typeof HistoryRoute
   '/session': typeof SessionRoute
   '/stats': typeof StatsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/countdowns': typeof CountdownsRoute
+  '/calendar': typeof CalendarRoute
+  '/exams': typeof ExamsRoute
   '/history': typeof HistoryRoute
   '/session': typeof SessionRoute
   '/stats': typeof StatsRoute
@@ -58,22 +66,31 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/countdowns': typeof CountdownsRoute
+  '/calendar': typeof CalendarRoute
+  '/exams': typeof ExamsRoute
   '/history': typeof HistoryRoute
   '/session': typeof SessionRoute
   '/stats': typeof StatsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/countdowns' | '/history' | '/session' | '/stats'
+  fullPaths: '/' | '/calendar' | '/exams' | '/history' | '/session' | '/stats'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/countdowns' | '/history' | '/session' | '/stats'
-  id: '__root__' | '/' | '/countdowns' | '/history' | '/session' | '/stats'
+  to: '/' | '/calendar' | '/exams' | '/history' | '/session' | '/stats'
+  id:
+    | '__root__'
+    | '/'
+    | '/calendar'
+    | '/exams'
+    | '/history'
+    | '/session'
+    | '/stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CountdownsRoute: typeof CountdownsRoute
+  CalendarRoute: typeof CalendarRoute
+  ExamsRoute: typeof ExamsRoute
   HistoryRoute: typeof HistoryRoute
   SessionRoute: typeof SessionRoute
   StatsRoute: typeof StatsRoute
@@ -102,11 +119,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/countdowns': {
-      id: '/countdowns'
-      path: '/countdowns'
-      fullPath: '/countdowns'
-      preLoaderRoute: typeof CountdownsRouteImport
+    '/exams': {
+      id: '/exams'
+      path: '/exams'
+      fullPath: '/exams'
+      preLoaderRoute: typeof ExamsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -121,7 +145,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CountdownsRoute: CountdownsRoute,
+  CalendarRoute: CalendarRoute,
+  ExamsRoute: ExamsRoute,
   HistoryRoute: HistoryRoute,
   SessionRoute: SessionRoute,
   StatsRoute: StatsRoute,
@@ -129,13 +154,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
