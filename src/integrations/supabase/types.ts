@@ -14,6 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
+      calendar_events: {
+        Row: {
+          all_day: boolean
+          category: string
+          completed: boolean
+          created_at: string
+          duration_minutes: number | null
+          exam_id: string | null
+          id: string
+          notes: string | null
+          priority: number | null
+          session_id: string | null
+          start_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          all_day?: boolean
+          category?: string
+          completed?: boolean
+          created_at?: string
+          duration_minutes?: number | null
+          exam_id?: string | null
+          id?: string
+          notes?: string | null
+          priority?: number | null
+          session_id?: string | null
+          start_at: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          all_day?: boolean
+          category?: string
+          completed?: boolean
+          created_at?: string
+          duration_minutes?: number | null
+          exam_id?: string | null
+          id?: string
+          notes?: string | null
+          priority?: number | null
+          session_id?: string | null
+          start_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "study_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exams: {
+        Row: {
+          created_at: string
+          exam_date: string
+          id: string
+          notes: string | null
+          title: string
+          topics: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          exam_date: string
+          id?: string
+          notes?: string | null
+          title: string
+          topics?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          exam_date?: string
+          id?: string
+          notes?: string | null
+          title?: string
+          topics?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       study_sessions: {
         Row: {
           created_at: string
