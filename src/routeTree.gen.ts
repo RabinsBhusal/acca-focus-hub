@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as SessionRouteImport } from './routes/session'
 import { Route as HistoryRouteImport } from './routes/history'
-import { Route as CountdownsRouteImport } from './routes/countdowns'
 import { Route as IndexRouteImport } from './routes/index'
 
 const StatsRoute = StatsRouteImport.update({
@@ -30,11 +29,6 @@ const HistoryRoute = HistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CountdownsRoute = CountdownsRouteImport.update({
-  id: '/countdowns',
-  path: '/countdowns',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,14 +37,12 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/countdowns': typeof CountdownsRoute
   '/history': typeof HistoryRoute
   '/session': typeof SessionRoute
   '/stats': typeof StatsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/countdowns': typeof CountdownsRoute
   '/history': typeof HistoryRoute
   '/session': typeof SessionRoute
   '/stats': typeof StatsRoute
@@ -58,22 +50,20 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/countdowns': typeof CountdownsRoute
   '/history': typeof HistoryRoute
   '/session': typeof SessionRoute
   '/stats': typeof StatsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/countdowns' | '/history' | '/session' | '/stats'
+  fullPaths: '/' | '/history' | '/session' | '/stats'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/countdowns' | '/history' | '/session' | '/stats'
-  id: '__root__' | '/' | '/countdowns' | '/history' | '/session' | '/stats'
+  to: '/' | '/history' | '/session' | '/stats'
+  id: '__root__' | '/' | '/history' | '/session' | '/stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CountdownsRoute: typeof CountdownsRoute
   HistoryRoute: typeof HistoryRoute
   SessionRoute: typeof SessionRoute
   StatsRoute: typeof StatsRoute
@@ -102,13 +92,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/countdowns': {
-      id: '/countdowns'
-      path: '/countdowns'
-      fullPath: '/countdowns'
-      preLoaderRoute: typeof CountdownsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -121,7 +104,6 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CountdownsRoute: CountdownsRoute,
   HistoryRoute: HistoryRoute,
   SessionRoute: SessionRoute,
   StatsRoute: StatsRoute,

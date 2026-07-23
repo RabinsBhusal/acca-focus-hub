@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { BookOpen, BarChart3, History, LayoutDashboard, Timer } from "lucide-react";
+import { BookOpen, BarChart3, History, LayoutDashboard, Calendar, GraduationCap } from "lucide-react";
 
 const links = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/countdowns", label: "Countdowns", icon: Timer },
+  { to: "/calendar", label: "Calendar", icon: Calendar },
+  { to: "/exams", label: "Exams", icon: GraduationCap },
   { to: "/history", label: "History", icon: History },
   { to: "/stats", label: "Stats", icon: BarChart3 },
 ] as const;
