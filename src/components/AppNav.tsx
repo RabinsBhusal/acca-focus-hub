@@ -1,10 +1,21 @@
 import { Link } from "@tanstack/react-router";
-import { BookOpen, BarChart3, History, LayoutDashboard, Calendar, GraduationCap } from "lucide-react";
+import {
+  BookOpen,
+  BarChart3,
+  History,
+  LayoutDashboard,
+  Calendar,
+  GraduationCap,
+  Timer,
+  Trophy,
+} from "lucide-react";
 
 const links = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/timers", label: "Timers", icon: Timer },
   { to: "/calendar", label: "Calendar", icon: Calendar },
   { to: "/exams", label: "Exams", icon: GraduationCap },
+  { to: "/achievements", label: "Achievements", icon: Trophy },
   { to: "/history", label: "History", icon: History },
   { to: "/stats", label: "Stats", icon: BarChart3 },
 ] as const;
@@ -21,7 +32,7 @@ export function AppNav() {
             ACCA Tracker
           </span>
         </Link>
-        <nav className="flex items-center gap-1">
+        <nav className="flex items-center gap-1 overflow-x-auto">
           {links.map(({ to, label, icon: Icon }) => (
             <Link
               key={to}
@@ -32,7 +43,7 @@ export function AppNav() {
               className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors hover:bg-secondary/70"
             >
               <Icon className="h-4 w-4" />
-              <span className="hidden sm:inline">{label}</span>
+              <span className="hidden lg:inline">{label}</span>
             </Link>
           ))}
         </nav>
