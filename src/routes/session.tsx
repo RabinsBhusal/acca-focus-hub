@@ -30,6 +30,7 @@ function SessionPage() {
   const queryClient = useQueryClient();
   const createFn = useServerFn(createSession);
   const upsertEventFn = useServerFn(upsertEvent);
+  const { check: checkAchievements } = useAchievementEvaluator();
 
   const [phase, setPhase] = useState<Phase>("setup");
   const [subject, setSubject] = useState<Subject>("ATX");
