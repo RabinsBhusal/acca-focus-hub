@@ -9,13 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TimersRouteImport } from './routes/timers'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as SessionRouteImport } from './routes/session'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as ExamsRouteImport } from './routes/exams'
 import { Route as CalendarRouteImport } from './routes/calendar'
+import { Route as AchievementsRouteImport } from './routes/achievements'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TimersRoute = TimersRouteImport.update({
+  id: '/timers',
+  path: '/timers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StatsRoute = StatsRouteImport.update({
   id: '/stats',
   path: '/stats',
@@ -41,6 +48,11 @@ const CalendarRoute = CalendarRouteImport.update({
   path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AchievementsRoute = AchievementsRouteImport.update({
+  id: '/achievements',
+  path: '/achievements',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -49,55 +61,88 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/achievements': typeof AchievementsRoute
   '/calendar': typeof CalendarRoute
   '/exams': typeof ExamsRoute
   '/history': typeof HistoryRoute
   '/session': typeof SessionRoute
   '/stats': typeof StatsRoute
+  '/timers': typeof TimersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/achievements': typeof AchievementsRoute
   '/calendar': typeof CalendarRoute
   '/exams': typeof ExamsRoute
   '/history': typeof HistoryRoute
   '/session': typeof SessionRoute
   '/stats': typeof StatsRoute
+  '/timers': typeof TimersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/achievements': typeof AchievementsRoute
   '/calendar': typeof CalendarRoute
   '/exams': typeof ExamsRoute
   '/history': typeof HistoryRoute
   '/session': typeof SessionRoute
   '/stats': typeof StatsRoute
+  '/timers': typeof TimersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/calendar' | '/exams' | '/history' | '/session' | '/stats'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/calendar' | '/exams' | '/history' | '/session' | '/stats'
-  id:
-    | '__root__'
+  fullPaths:
     | '/'
+    | '/achievements'
     | '/calendar'
     | '/exams'
     | '/history'
     | '/session'
     | '/stats'
+    | '/timers'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/achievements'
+    | '/calendar'
+    | '/exams'
+    | '/history'
+    | '/session'
+    | '/stats'
+    | '/timers'
+  id:
+    | '__root__'
+    | '/'
+    | '/achievements'
+    | '/calendar'
+    | '/exams'
+    | '/history'
+    | '/session'
+    | '/stats'
+    | '/timers'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AchievementsRoute: typeof AchievementsRoute
   CalendarRoute: typeof CalendarRoute
   ExamsRoute: typeof ExamsRoute
   HistoryRoute: typeof HistoryRoute
   SessionRoute: typeof SessionRoute
   StatsRoute: typeof StatsRoute
+  TimersRoute: typeof TimersRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/timers': {
+      id: '/timers'
+      path: '/timers'
+      fullPath: '/timers'
+      preLoaderRoute: typeof TimersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stats': {
       id: '/stats'
       path: '/stats'
@@ -133,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/achievements': {
+      id: '/achievements'
+      path: '/achievements'
+      fullPath: '/achievements'
+      preLoaderRoute: typeof AchievementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -145,11 +197,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AchievementsRoute: AchievementsRoute,
   CalendarRoute: CalendarRoute,
   ExamsRoute: ExamsRoute,
   HistoryRoute: HistoryRoute,
   SessionRoute: SessionRoute,
   StatsRoute: StatsRoute,
+  TimersRoute: TimersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
