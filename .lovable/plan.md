@@ -1,124 +1,132 @@
 
-# Calendar Hub — MVP Plan
+# Achievements, Timers, and Google Calendar Sync
 
-A central `/calendar` page becomes the planning hub. Study sessions auto-log as calendar events. Exams live in a new table and replace the existing localStorage `/countdowns` page. AI planner, deadline risk, and daily reflection are deferred to follow-ups.
+Three additions built on the existing calendar/session infrastructure. No auth is added — the app stays single-user with permissive RLS, but Google sync needs a real signed-in user identity to hold the per-user connection key. See "Auth caveat" below.
 
-## Scope (this pass)
+## 1. Timers hub + dashboard Pomodoro
 
-In:
-- Calendar page with Month / Week / Day views
-- Event CRUD (create by clicking a date, edit, delete, toggle completion)
-- Categories: study, task, assignment, exam, personal, reminder (color-coded)
-- Exam countdown page (days remaining, progress bar per topic, milestones)
-- Study session → auto-created calendar event on submit
-- GitHub-style productivity heatmap (last ~26 weeks)
-- Remove `/countdowns` route and localStorage code; nav points to new pages
+New page `/timers` with three tabs:
+- **Pomodoro** — 25/5 default, configurable work/break lengths, cycle counter, auto-cycles, ding on transition.
+- **Countdown** — pick minutes (or preset chips 15/25/50/90), counts down, logs a `study_session` on finish and asks for subject/topic/rating like today's flow.
+- **Stopwatch** — the existing count-up flow, reused as a component.
 
-Deferred (follow-up passes):
-- AI study planner
-- Deadline risk (green/yellow/red) automation
-- Daily reflection notes
-- Recurring events, drag/reschedule, notifications
+Dashboard (`/`) gets a compact **Pomodoro widget** card (start / pause / skip, cycle indicator) that shares state with `/timers` via a small Zustand store so it keeps running across route changes.
 
-## Database (one migration)
+Shared logic:
+- `src/lib/timers/pomodoroStore.ts` — Zustand store: phase (`work`/`shortBreak`/`longBreak`), remainingMs, running, cycles, settings; tick via `requestAnimationFrame` with a persisted `startedAt` so tab-switch drift is fixed.
+- `src/lib/timers/countdownStore.ts` — same shape for the countdown timer.
+- `src/components/timers/PomodoroCard.tsx`, `CountdownCard.tsx`, `StopwatchCard.tsx` — presentational, driven by stores.
+- Existing `/session` stopwatch logic gets extracted into `StopwatchCard` and reused; `/session` route keeps its subject/topic/feedback wrapper.
 
-Two new tables in `public`, permissive `anon` RLS to match the existing private-app posture (already recorded in security memory).
+## 2. Achievements (badges + progress goals)
 
-`calendar_events`
-- `id uuid pk`
-- `title text not null`
-- `category text not null` — one of study/task/assignment/exam/personal/reminder
-- `start_at timestamptz not null`
-- `duration_minutes int` (nullable for all-day/reminders)
-- `all_day bool default false`
-- `priority int` (1–3, nullable)
-- `notes text`
-- `completed bool default false`
-- `session_id uuid` — nullable FK to `study_sessions.id` (auto-log link)
-- `exam_id uuid` — nullable FK to `exams.id`
-- `created_at`, `updated_at` with trigger
+New tables (one migration):
 
-`exams`
-- `id uuid pk`
-- `title text not null` (e.g. "ACCA ATX")
-- `exam_date date not null`
-- `topics jsonb not null default '[]'` — `[{ name, progress: 0-100 }]`
-- `notes text`
-- `created_at`, `updated_at`
+```
+achievements          -- static-ish catalog (seeded in migration)
+  id, code text unique, title, description, icon (lucide name),
+  category ('streak'|'volume'|'consistency'|'exam'|'timer'),
+  threshold int, unit ('sessions'|'minutes'|'days'|'pomodoros')
 
-Both tables: GRANT to `anon`, `authenticated`, `service_role`; enable RLS with `USING (true) / WITH CHECK (true)` policies (consistent with current app). Add `updated_at` trigger.
+user_achievements     -- unlock log (single-user, no user_id column needed here)
+  id, achievement_code text, unlocked_at timestamptz
 
-## Files
+goals                 -- user-defined progress goals
+  id, title, metric ('minutes'|'sessions'|'pomodoros'),
+  target int, period ('week'|'month'|'custom'),
+  starts_on date, ends_on date, created_at, updated_at
+```
+
+All permissive-anon RLS to match the existing posture, with GRANTs.
+
+New page `/achievements`:
+- **Badges grid** — locked badges shown greyed with progress bar toward threshold (e.g. "42 / 50 sessions"), unlocked badges shown in accent color with unlock date.
+- **Goals** — cards with title, progress bar, remaining time; add/edit/delete via dialog.
+
+Seeded achievements: 3-day / 7-day / 30-day / 100-day streak, 10/50/100/500 sessions, 10/50/200 hours, first exam, 5/25/100 pomodoros completed.
+
+Evaluation:
+- Pure function `evaluateAchievements(sessions, pomodoroCount, exams)` returns which codes should be unlocked.
+- Called after session save, exam save, and pomodoro-cycle completion. Any newly unlocked codes get inserted into `user_achievements` and a toast + confetti (canvas-confetti, already tiny) fires.
+- Same function runs on `/achievements` mount to backfill anything missed.
+
+Nav: add "Achievements" link between Exams and History.
+
+## 3. Google Calendar two-way sync
+
+Uses the **Google Calendar App User Connector** (per-user OAuth via `connectAppUser`).
+
+### Auth caveat (must resolve first)
+
+Per-user OAuth requires an authenticated app user to key the connection against. This app was built without auth. Two options — I need you to pick before I build sync:
+
+**Option A — Add minimal Supabase email auth just so sync can key against a user.** Everything else stays open. Roughly one route (`/auth`) + `_authenticated` wrapper around the sync UI only.
+
+**Option B — Single-tenant hack: store the one Google connection key in an env-configured "owner" slot.** Faster, no auth, but violates the platform's per-user-identity storage rule. I'd only do this if you accept it's a personal single-user app and are OK with the caveat.
+
+Everything below assumes Option A. If you pick B, the flow is the same minus the auth wrapping.
+
+### Wiring
+
+- `connector_app_user--connect_client` for `google_calendar` (you'll approve a workspace client + add the gateway redirect URI in Google Cloud Console).
+- New files:
+  - `src/integrations/lovable/appUserConnector.ts` + `appUserConnectorClient.ts` (server + browser halves from the connector knowledge).
+  - `src/server/connectionKeyCrypto.ts`, `src/server/appUserConnections.server.ts` — encrypted per-user key storage.
+  - Migration: `app_user_connections` table (service-role only).
+  - `src/lib/gcal.functions.ts` — server fns: `startGcalConnect`, `saveGcalConnection`, `disconnectGcal`, `listGcalCalendars`, `pushEventToGcal`, `pullGcalEvents`, `syncGcal`.
+- `calendar_events` gets three new columns: `google_event_id text`, `google_calendar_id text`, `synced_at timestamptz`.
+
+### Sync behavior
+
+- **Push (app → Google):** on `upsertEvent`, if user has connected Google + enabled sync, mirror to Google via `POST /calendars/{cal}/events` (or PATCH if `google_event_id` exists). Delete mirrors the delete.
+- **Pull (Google → app):** manual "Sync now" button on `/calendar` and on-mount incremental pull using Google's `syncToken` (stored in a new `gcal_sync_state` table). Imported events are stored with `category='personal'` by default and flagged as `source='google'` so we don't push them back.
+- **Conflict rule:** last-write-wins by `updated_at`; a small badge in the event dialog shows "Synced with Google" when applicable.
+- **Settings panel** (`/calendar` header dropdown): connect/disconnect Google, choose target calendar, toggle push and pull independently.
+
+### Apple Calendar
+
+Not covered by two-way OAuth. If you want Apple, easiest add-on is exposing a public read-only `.ics` feed at `/api/public/calendar.ics` that Apple/Google can subscribe to (one-way, no OAuth). Say the word and I'll add it — otherwise skipping.
+
+## Files summary
 
 New:
 ```
-src/lib/calendar.functions.ts     // list/create/update/delete events
-src/lib/exams.functions.ts        // list/create/update/delete exams
-src/lib/calendar.ts               // pure helpers: month grid, week range, heatmap buckets, category color tokens
-src/lib/queries.ts (extend)       // add calendarEventsQueryOptions, examsQueryOptions
-src/components/calendar/CalendarHeader.tsx     // view switcher + prev/next/today
-src/components/calendar/MonthView.tsx
-src/components/calendar/WeekView.tsx
-src/components/calendar/DayView.tsx
-src/components/calendar/EventDot.tsx           // color-coded pill/dot
-src/components/calendar/EventDialog.tsx        // create/edit form (shadcn Dialog)
-src/components/calendar/Heatmap.tsx            // GitHub-style grid from study_sessions
-src/components/exam/ExamCard.tsx               // countdown + topic progress bars
-src/components/exam/ExamForm.tsx
-src/routes/calendar.tsx                        // main hub with view switcher
-src/routes/exams.tsx                           // exam countdowns list + create
+src/routes/timers.tsx
+src/routes/achievements.tsx
+src/components/timers/{PomodoroCard,CountdownCard,StopwatchCard,TimerTabs}.tsx
+src/components/dashboard/PomodoroWidget.tsx
+src/components/achievements/{BadgeGrid,BadgeCard,GoalCard,GoalDialog}.tsx
+src/lib/timers/{pomodoroStore,countdownStore,timerAudio}.ts
+src/lib/achievements.ts          # pure evaluate + catalog types
+src/lib/achievements.functions.ts
+src/lib/goals.functions.ts
+src/lib/gcal.functions.ts
+src/lib/gcal.ts                  # mapping between calendar_events and Google events
+src/integrations/lovable/appUserConnector.ts
+src/integrations/lovable/appUserConnectorClient.ts
+src/server/connectionKeyCrypto.ts
+src/server/appUserConnections.server.ts
 ```
 
 Changed:
-- `src/routes/session.tsx` — after `createSession` succeeds, also insert a `calendar_events` row (category=study, linked via `session_id`).
-- `src/components/AppNav.tsx` — replace `Countdowns` with `Calendar` and `Exams`.
-- `src/routes/__root.tsx` — head title/description updates.
+```
+src/components/AppNav.tsx        # add Timers, Achievements
+src/routes/index.tsx             # add PomodoroWidget + unlocked-badge strip
+src/routes/session.tsx           # extract stopwatch, run evaluateAchievements post-save, push to gcal
+src/routes/calendar.tsx          # Google sync button + settings
+src/lib/queries.ts               # achievement/goal/gcal query options
+src/styles.css                   # add badge accent tokens
+```
 
-Deleted:
-- `src/routes/countdowns.tsx`
-- `src/lib/countdowns.ts`
-- `src/components/countdown/*`
+Dependencies to add: `zustand`, `canvas-confetti` (+ types).
 
-## Views
+## Order of build
 
-- **Month**: 6-row grid, each cell shows date + up to 3 event chips (color by category), "+N more" collapses; click a day → EventDialog with prefilled date.
-- **Week**: 7 columns, hourly rows (6am–10pm default), events positioned by start + duration.
-- **Day**: single-column agenda with time gutter.
-- **Heatmap**: on Calendar page bottom, 7×26 cells fed from `study_sessions.date` totals; tooltip shows minutes and session count.
+1. Migration (achievements catalog + seed, user_achievements, goals, app_user_connections, gcal columns/state).
+2. Timers hub + dashboard Pomodoro widget (no backend dependency).
+3. Achievements page + evaluate hook into session/pomodoro/exam paths.
+4. Google Calendar sync (after you answer the auth caveat).
 
-Header shows current period label, prev/next/today buttons, and a segmented view switcher. Category filter chips filter chips shown in views.
+## Out of scope (call out)
 
-## Event dialog
-
-Fields: title, category (select w/ color swatch), date (shadcn Datepicker), time + duration OR all-day toggle, priority (Low/Med/High), notes, completed checkbox. Uses TanStack Query mutation with cache invalidation of `["calendar-events"]`.
-
-## Exam countdown
-
-`/exams` lists exam cards:
-- Big "43 days remaining" number
-- Overall progress = average of topic progresses; progress bar
-- Per-topic list with editable 0–100 progress (inline slider); saves via mutation
-- Link "Add to calendar" pre-fills EventDialog with category=exam and the exam date
-
-## Design
-
-- Reuse existing OKLCH tokens; add semantic tokens `--cat-study`, `--cat-exam`, `--cat-task`, `--cat-personal`, `--cat-assignment`, `--cat-reminder` in `src/styles.css`.
-- Category colors: study=blue, exam=red, task=green, personal=purple, assignment=amber, reminder=slate.
-- Motion: `animate-fade-in` on view mount and dialog; hover-scale on chips.
-- Mobile: month view stays; week/day collapse to agenda list under `sm`.
-
-## Technical notes
-
-- All DB access via `createServerFn` in `.functions.ts`, using the existing server publishable client pattern from `sessions.functions.ts`.
-- Loaders use `ensureQueryData`; components use `useSuspenseQuery`.
-- Head metadata on `/calendar` and `/exams` (unique title/description/og).
-- Timezone: store `timestamptz` UTC, render in browser local time using `date-fns`.
-- New dependency: `date-fns` (small, tree-shakeable). Existing recharts already handles any charts; no new chart lib.
-
-## Security posture
-
-Same permissive-anon model as `study_sessions`, already documented in security memory. No new auth. Called out that anyone with the URL can read/write.
-
-## Out of scope (call out to user)
-
-AI planner UI stub, deadline risk indicator, daily reflection, recurring events, drag-to-reschedule, push/email reminders — I'll add these in a follow-up once the MVP feels right.
+Apple Calendar OAuth (not supported), recurring events in Google sync (only single events for v1), shared badges/leaderboards, per-goal reminders. Ping me if you want any of these next.
