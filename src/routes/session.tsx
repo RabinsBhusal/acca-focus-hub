@@ -105,6 +105,7 @@ function SessionPage() {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
       toast.success("Session saved");
+      void checkAchievements();
       navigate({ to: "/" });
     },
     onError: (err: Error) => toast.error(err.message ?? "Could not save session"),
