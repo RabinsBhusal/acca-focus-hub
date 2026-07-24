@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          category: string
+          code: string
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          threshold: number
+          title: string
+          unit: string
+        }
+        Insert: {
+          category: string
+          code: string
+          created_at?: string
+          description: string
+          icon: string
+          id?: string
+          threshold: number
+          title: string
+          unit: string
+        }
+        Update: {
+          category?: string
+          code?: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          threshold?: number
+          title?: string
+          unit?: string
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           all_day: boolean
@@ -107,6 +143,60 @@ export type Database = {
         }
         Relationships: []
       }
+      goals: {
+        Row: {
+          created_at: string
+          ends_on: string
+          id: string
+          metric: string
+          period: string
+          starts_on: string
+          target: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          ends_on: string
+          id?: string
+          metric: string
+          period: string
+          starts_on: string
+          target: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          ends_on?: string
+          id?: string
+          metric?: string
+          period?: string
+          starts_on?: string
+          target?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pomodoro_completions: {
+        Row: {
+          completed_at: string
+          duration_minutes: number
+          id: string
+        }
+        Insert: {
+          completed_at?: string
+          duration_minutes: number
+          id?: string
+        }
+        Update: {
+          completed_at?: string
+          duration_minutes?: number
+          id?: string
+        }
+        Relationships: []
+      }
       study_sessions: {
         Row: {
           created_at: string
@@ -140,6 +230,24 @@ export type Database = {
           notes?: string | null
           subject?: string
           topic?: string | null
+        }
+        Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_code: string
+          id: string
+          unlocked_at: string
+        }
+        Insert: {
+          achievement_code: string
+          id?: string
+          unlocked_at?: string
+        }
+        Update: {
+          achievement_code?: string
+          id?: string
+          unlocked_at?: string
         }
         Relationships: []
       }

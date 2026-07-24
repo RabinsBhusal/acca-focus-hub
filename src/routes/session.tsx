@@ -8,6 +8,7 @@ import { SUBJECTS, type Subject } from "@/lib/constants";
 import { createSession } from "@/lib/sessions.functions";
 import { upsertEvent } from "@/lib/calendar.functions";
 import { StarRating } from "@/components/StarRating";
+import { useAchievementEvaluator } from "@/hooks/useAchievementEvaluator";
 
 export const Route = createFileRoute("/session")({
   component: SessionPage,
@@ -29,6 +30,7 @@ function SessionPage() {
   const queryClient = useQueryClient();
   const createFn = useServerFn(createSession);
   const upsertEventFn = useServerFn(upsertEvent);
+  const { check: checkAchievements } = useAchievementEvaluator();
 
   const [phase, setPhase] = useState<Phase>("setup");
   const [subject, setSubject] = useState<Subject>("ATX");
@@ -103,6 +105,7 @@ function SessionPage() {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
       toast.success("Session saved");
+      void checkAchievements();
       navigate({ to: "/" });
     },
     onError: (err: Error) => toast.error(err.message ?? "Could not save session"),
