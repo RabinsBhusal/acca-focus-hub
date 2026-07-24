@@ -85,6 +85,15 @@ function Dashboard() {
       </section>
 
       <section>
+        <h2 className="mb-3 font-display text-lg font-semibold text-foreground">
+          Pomodoro
+        </h2>
+        <PomodoroCard />
+      </section>
+
+
+
+      <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-display text-lg font-semibold text-foreground">
             Recent activity
