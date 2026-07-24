@@ -3,6 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Play, Clock, Flame, CalendarDays, CalendarRange } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { SessionCard } from "@/components/SessionCard";
+import { PomodoroCard } from "@/components/timers/PomodoroCard";
 import { sessionsQueryOptions } from "@/lib/queries";
 import {
   currentStreak,
@@ -13,6 +14,20 @@ import {
 } from "@/lib/stats";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Dashboard — ACCA Study Tracker" },
+      {
+        name: "description",
+        content: "Today's study totals, streak, and a built-in Pomodoro timer.",
+      },
+      { property: "og:title", content: "Dashboard — ACCA Study Tracker" },
+      {
+        property: "og:description",
+        content: "Today's study totals, streak, and a built-in Pomodoro timer.",
+      },
+    ],
+  }),
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(sessionsQueryOptions);
   },
