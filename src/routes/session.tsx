@@ -8,6 +8,7 @@ import { SUBJECTS, type Subject } from "@/lib/constants";
 import { createSession } from "@/lib/sessions.functions";
 import { upsertEvent } from "@/lib/calendar.functions";
 import { StarRating } from "@/components/StarRating";
+import { useAchievementEvaluator } from "@/hooks/useAchievementEvaluator";
 
 export const Route = createFileRoute("/session")({
   component: SessionPage,
